@@ -50,7 +50,7 @@ void saveBitMap() {
 }
 
 
-uint64_t findFirstFreeBlock() {
+uint64_t first_free_block() {
     error_log("%s called", __func__);
 
     uint64_t index = 0;

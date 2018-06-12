@@ -214,7 +214,7 @@ fs_tree_node *add_fs_tree_node(const char *path, uint8_t type) {
         curr->children[curr->len - 1] = (fs_tree_node *)malloc(sizeof(fs_tree_node));
         curr = curr->children[curr->len - 1];
 
-        curr->inode_no = findFirstFreeBlock();
+        curr->inode_no = first_free_block();
         if(curr->inode_no == -1) {
             error_log("Returning with error ENOSPC");
             return (fs_tree_node *)(-ENOSPC);

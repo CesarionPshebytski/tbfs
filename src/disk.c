@@ -378,7 +378,7 @@ uint64_t diskWriter(void *blocks_data, uint64_t blocks, uint64_t first) {
         setBitofMap(toWrite);
         next = 0;
         if(i != (blocks - 1))
-            next = findFirstFreeBlock();
+            next = first_free_block();
         
         memcpy(blocks_data + (BLOCK_SIZE * (i+1) - 8), &next, sizeof(next));
         writeBlock(toWrite, blocks_data + (i * BLOCK_SIZE));

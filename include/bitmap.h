@@ -21,7 +21,7 @@ int loadBitMap(int fd);
 
 void saveBitMap();
 
-uint64_t findFirstFreeBlock();
+uint64_t first_free_block();
 
 int setBitofMap(uint64_t bitno);
 

@@ -66,21 +66,21 @@ int main(int argc, char **argv){
 	error_log("Done marking!\n");
 
 	void *buf;
-	uint64_t firstFreeBlock = findFirstFreeBlock();
-	error_log("First free block = %lu\n", firstFreeBlock);
+	uint64_t first_free_block = first_free_block();
+	error_log("First free block = %lu\n", first_free_block);
 	error_log("Constructing block for root node!\n");
 	
 	fs_tree_node *root = node_exists("/");
-	root->inode_no = firstFreeBlock;
+	root->inode_no = first_free_block;
 	
 	constructBlock(root, &buf);
 	error_log("Done constructing block for root node!\n");
 	output_node(*root);
 
-	writeBlock(firstFreeBlock, buf);
+	writeBlock(first_free_block, buf);
 	error_log("Done writing block for root node!\n");
 	
-	setBitofMap(firstFreeBlock);
+	setBitofMap(first_free_block);
 	error_log("Writing bitmap to file\n");
 	for(i = 0 ; i < bmap_blocks ; i++) {
 		writeBlock(SUPERBLOCKS + i, bitmap + (i * BLOCK_SIZE));
