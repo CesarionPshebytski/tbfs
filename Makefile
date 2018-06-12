@@ -1,4 +1,4 @@
-username = StasMaster
+username = $(shell whoami)
 mountpoint = /home/$(username)/Desktop/mountpoint
 includepath = -I./include/
 srcprefix = ./src/
