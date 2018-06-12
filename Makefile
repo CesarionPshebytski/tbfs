@@ -3,7 +3,7 @@ mountpoint = /home/$(username)/Desktop/mountpoint
 includepath = -I./include/
 srcprefix = ./src/
 files = $(srcprefix)tbfs_operations.c $(srcprefix)tree.c $(srcprefix)disk.c $(srcprefix)bitmap.c
-compileflags = -D_FILE_OtbfsET_BITS=64
+compileflags = -D_FILE_OFFSET_BITS=64
 opflag = -o tbfs
 neededflag = `pkg-config fuse --libs` -DFUSE_USE_VERSION=22 -lm
 
