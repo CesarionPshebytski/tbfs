@@ -1,8 +1,5 @@
 #include "bitmap.h"
 
-// Error logging for THIS MODULE, helps differentiate from logging of other modules
-// Prints errors and logging info to STDOUT
-// Passes format strings and args to vprintf, basically a wrapper for printf
 static void error_log(char *fmt, ...) {
 #ifdef ERR_FLAG
     va_list args;
@@ -30,7 +27,6 @@ int loadBitMap(int fd) {
         exit(0);
     }
 
-    // bmap_size is number of bytes taken by bitmap
     bitmap = (uint8_t *)malloc(bmap_size);
     if(!bitmap) {
         return -1;

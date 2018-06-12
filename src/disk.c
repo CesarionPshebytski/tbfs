@@ -1,9 +1,6 @@
 #include "disk.h"
 #include<unistd.h>
 
-// Error logging for THIS MODULE, helps differentiate from logging of other modules
-// Prints errors and logging info to STDOUT
-// Passes format strings and args to vprintf, basically a wrapper for printf
 static void error_log(char *fmt, ...) {
 #ifdef ERR_FLAG
     va_list args;
@@ -24,7 +21,6 @@ void *allocate(fs_tree_node *node, uint64_t n) {
     n = n / (4 * 1024);
     n += 1;
     error_log("Going to allocate %ld blocks", n);
-    // n blocks are to be allocated
 
     node->data = (uint8_t *)malloc(n * BLOCK_SIZE);
 
@@ -41,7 +37,6 @@ void *reallocate(fs_tree_node *node, uint64_t n) {
 
     n = n / (4 * 1024);
     n += 1;
-    // n blocks are to be allocated
     error_log("Going to allocate %ld blocks", n);
     void *temp_buf;
 
@@ -96,14 +91,11 @@ uint64_t constructBlock(fs_tree_node *node, void **ret) {
             break;
     }
     uint64_t blocks_needed = (space_needed / BLOCK_SIZE) + 1;
-    // in every block, last 64 bytes are for storing next block number
-    // so additional space required =
     space_needed += (blocks_needed * 64);
 
-    // NODE_SIZE accounts for the next block field in the first block
     space_needed -= 64;
 
-    blocks_needed = (space_needed / BLOCK_SIZE) + 1;    // Re-calculate blocks needed after adding
+    blocks_needed = (space_needed / BLOCK_SIZE) + 1;
 
     error_log("Space need = %lu\tBlocks needed = %lu", space_needed, blocks_needed);
 
@@ -114,8 +106,8 @@ uint64_t constructBlock(fs_tree_node *node, void **ret) {
     }
     error_log("Storage allocated %p", store);
 
-    uint64_t alloc = 0;     //bytes in (store) already allocated
-    uint64_t data_copied = 0;   //bytes of data copied
+    uint64_t alloc = 0;
+    uint64_t data_copied = 0;
     
     memcpy(store + alloc, &(node->type), sizeof(node->type));
     alloc += sizeof(node->type);
@@ -177,11 +169,9 @@ uint64_t constructBlock(fs_tree_node *node, void **ret) {
 
     error_log("Done writing inode no %d, alloc = %d", node->inode_no, alloc);
 
-    // nothing to copy for next block, have to set manually later
     uint64_t blocks_done = 0;
     switch(node->type) {
         case 1:
-            // copy data
             if(node->data_size <= (BLOCK_SIZE - NODE_SIZE)) {
                 error_log("Writing at alloc = %lu, data_size %lu \t %4s", alloc, node->data_size, node->data);
                 memcpy(store + alloc, (node->data), (node->data_size));
@@ -213,7 +203,6 @@ uint64_t constructBlock(fs_tree_node *node, void **ret) {
         break;
 
         case 2:
-            //copy child inode nos
             error_log("case 2 %d %lu", node->type, node->len);
             for(data_copied = 0 ; data_copied < node->len ; data_copied++) {
                 memcpy(store + alloc, &(node->ch_inodes[data_copied]), sizeof(node->inode_no));
@@ -349,7 +338,7 @@ int readBlock(uint64_t blocknr, void *block) {
 
     int ret;
     if(blocknr < MAX_BLOCK_NO){
-        error_log("Reading %d from offset %d", BLOCK_SIZE, blocknr * BLOCK_SIZE);
+        error_log("Reading %d from otbfset %d", BLOCK_SIZE, blocknr * BLOCK_SIZE);
         lseek(diskfd, blocknr * BLOCK_SIZE, SEEK_SET);
         ret = read(diskfd, block, BLOCK_SIZE);
     }
@@ -391,12 +380,11 @@ uint64_t diskWriter(void *blocks_data, uint64_t blocks, uint64_t first) {
         if(i != (blocks - 1))
             next = findFirstFreeBlock();
         
-        memcpy(blocks_data + (BLOCK_SIZE * (i+1) - 8), &next, sizeof(next)); // set the next block field
+        memcpy(blocks_data + (BLOCK_SIZE * (i+1) - 8), &next, sizeof(next));
         writeBlock(toWrite, blocks_data + (i * BLOCK_SIZE));
     }
 
     error_log("Freeing input buffer after write %p", blocks_data);
-    //free(blocks_data); // throws error "invalid pointer" = reason unkown
     error_log("Returning with %d", i);
 
     return i;

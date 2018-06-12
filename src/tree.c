@@ -3,9 +3,6 @@
 // Root
 fs_tree_node *root;
 
-// Error logging for THIS MODULE, helps differentiate from logging of other modules
-// Prints errors and logging info to STDOUT
-// Passes format strings and args to vprintf, basically a wrapper for printf
 static void error_log(char *fmt, ...) {
 #ifdef ERR_FLAG
     va_list args;
@@ -41,7 +38,6 @@ int destroy_node(fs_tree_node *node) {
         deallocate(node);
     error_log("Erased data");
     
-    //free(node);   // causes double free error
     error_log("Returning");
     return 0;
 }
@@ -54,15 +50,11 @@ void output_node(fs_tree_node node) {
 
 int init_fs() {
     error_log("%s called", __func__);
-    //path_to_mount = (char *)malloc(sizeof(char) * (strlen(mountPoint) + 1));
-    //strcpy(path_to_mount, mountPoint);
 
     root = (fs_tree_node *)malloc(sizeof(fs_tree_node));
-    //global_curr = (fs_tree_node *)malloc(sizeof(fs_tree_node));        //update this whenever CD is done
     error_log("Root node at %p", root);
 
     root->type = 2;
-    //root->name = NULL;
     root->fullname = (char *)malloc(sizeof(char) * 2);
     strcpy(root->fullname, "/");
     strcpy(root->name, "/");
@@ -84,15 +76,12 @@ int dfs_dispatch(fs_tree_node *curr, int (*foo)(fs_tree_node *)) {
     error_log("%s called on node %s, len = %u, type = %d", __func__, curr->name, curr->len, curr->type);
 
     int i = 0;
-    if(curr->len > 0 && curr->type == 2) {         // if curr has children and is directory
+    if(curr->len > 0 && curr->type == 2) {
         error_log("Has %d children, curr->children is %p", curr->len, curr->children);
-        for(i = 0 ; i < curr->len ; i++)        // call dsf_dispatch on each child
-            if(curr->children[i]->type == 2)                    //if it is a directory, only dirs can have children
+        for(i = 0 ; i < curr->len ; i++)
+            if(curr->children[i]->type == 2)
                 dfs_dispatch(curr->children[i], foo);
     }
-
-    // when a node with no children is found
-    // apply foo to it
 
     foo(curr);
     return 0;
@@ -103,12 +92,12 @@ int bfs_dispatch(fs_tree_node *curr, int (*foo)(fs_tree_node *)) {
     error_log("%s called on node %s", __func__, curr->fullname);
 
     int i = 0;
-    if(curr->len > 0 && curr->type == 2) {         // if curr has children and is directory
+    if(curr->len > 0 && curr->type == 2) {
         error_log("Has %d children, curr->children is %p", curr->len, curr->children);
-        for(i = 0 ; i < curr->len ; i++)        // call foo on each child
+        for(i = 0 ; i < curr->len ; i++)
             foo(curr->children[i]);
 
-        for(i = 0 ; i < curr->len ; i++)        // call bsf_dispatch on each child
+        for(i = 0 ; i < curr->len ; i++)
             bfs_dispatch(curr->children[i], foo);
     }
 
@@ -192,21 +181,21 @@ fs_tree_node *add_fs_tree_node(const char *path, uint8_t type) {
     fs_tree_node *curr = root;
     int pathLength = strlen(path), sublen = 0;
     int i, j;
-    char *temp = (char *)malloc(sizeof(char) * (pathLength + 1));     //to store path until one level higher than path given
+    char *temp = (char *)malloc(sizeof(char) * (pathLength + 1));
     strcpy(temp, path);
     
-    for(i = pathLength - 1 ; temp[i] != '/' ; i--);     //find first / from back of path
+    for(i = pathLength - 1 ; temp[i] != '/' ; i--);
     temp[i] = 0;
     i += 1;
 
-    if(i == 1) {  //if root's child
+    if(i == 1) {
         error_log("Found to be root's child!");
         strcpy(temp, "/");
     }
 
     sublen = (pathLength - i + 1);
     char *fileName = (char *)malloc(sizeof(char) * sublen);
-    for(j = 0 ; i < pathLength ; i++, j++)                  //extract name of file from full path   
+    for(j = 0 ; i < pathLength ; i++, j++)
         fileName[j] = path[i];
     fileName[sublen - 1] = 0;
 
@@ -216,8 +205,6 @@ fs_tree_node *add_fs_tree_node(const char *path, uint8_t type) {
     error_log("Checking if path : %s : exists", temp);
 
     if((curr = node_exists(temp))) {
-        // FUSE checks for entire path to exist (and makes sure it will exist when this called)
-        // Hence this block will usually be executed
 
         error_log("Path found to exist with %d children!", curr->len);
         fs_tree_node *parent = curr;
@@ -227,18 +214,15 @@ fs_tree_node *add_fs_tree_node(const char *path, uint8_t type) {
         curr->children[curr->len - 1] = (fs_tree_node *)malloc(sizeof(fs_tree_node));
         curr = curr->children[curr->len - 1];
 
-        //now curr is child
-
         curr->inode_no = findFirstFreeBlock();
         if(curr->inode_no == -1) {
             error_log("Returning with error ENOSPC");
             return (fs_tree_node *)(-ENOSPC);
         }
         
-        //curr->name = (char *)malloc(sizeof(char) * sublen);     //add name to FS node
         strcpy(curr->name, fileName);
 
-        curr->fullname = (char *)malloc(sizeof(char) * (pathLength + 1));       //add full name to FS node
+        curr->fullname = (char *)malloc(sizeof(char) * (pathLength + 1));
         strcpy(curr->fullname, path);
 
         curr->children = NULL;
@@ -312,13 +296,11 @@ fs_tree_node *add_fs_tree_node(const char *path, uint8_t type) {
 int remove_fs_tree_node(const char *path) {
     error_log("%s called with path %s", __func__, path);
 
-    if(!strcmp(path, "/")) {    //if root, return -1 (operation not permitted)
+    if(!strcmp(path, "/")) {
         error_log("%s Returning with -1", __func__);
         return -1;
     }
 
-    // OS checks if path exists using getattr, no need to check explicitly
-    // using node_exists to get FS tree node
 
     uint64_t i;
     fs_tree_node *toDelete = node_exists(path);
@@ -336,7 +318,7 @@ int remove_fs_tree_node(const char *path) {
         }
     }
 
-    for( ; i < (parent->len - 1) ; i++) {                   // shift all children back one position, effectively deleting the node
+    for( ; i < (parent->len - 1) ; i++) {
         parent->children[i] = parent->children[i+1];
         parent->ch_inodes[i] = parent->ch_inodes[i+1];
     }
@@ -370,26 +352,19 @@ int remove_fs_tree_node(const char *path) {
 
 int copy_nodes(fs_tree_node *from, fs_tree_node *to) {
     error_log("%s called", __func__);
-    to->type = from->type;                       //type of node
-    //strcpy(to->name, from->name);                         //name of node
-    //from->name = NULL;
-    //to->fullname = from->fullname;                     //full path of node
-    //to->inode_no = from->inode_no;
-
-    //to->parent = from->parent;        //link to parent
-    to->children = from->children;      //links to children
+    to->type = from->type;
+    to->children = from->children;
     to->ch_inodes = from->ch_inodes;
-    //to->inode_no = from->inode_no;
-    to->len = from->len;                       //number of children
+    to->len = from->len;
 
-    to->data = from->data;						//data for read and write
-    to->data_size = from->data_size;						//size of data
+    to->data = from->data;
+    to->data_size = from->data_size;
     error_log("COPYING DATA %d : %10s : %10s", to->data_size, to->data, from->data);
-    to->block_count = from->block_count;               // number of blocks
+    to->block_count = from->block_count;
 
-    to->st_atim = from->st_atim;            /* time of last access */
-    to->st_mtim = from->st_mtim;            /* time of last modification */
-    to->st_ctim = from->st_ctim;            /* time of last status change */
+    to->st_atim = from->st_atim;
+    to->st_mtim = from->st_mtim;
+    to->st_ctim = from->st_ctim;
 
     return 0;
 }
@@ -408,7 +383,6 @@ int load_fs(int diskfd) {
     uint64_t toRead = ((bmap_size / BLOCK_SIZE + 1) + SUPERBLOCKS);
     error_log("toRead = %d", toRead);
 
-    // Load root node
     root = diskReader(toRead);
     error_log("Root node at %p", root);
     error_log("With children %u", root->len);
