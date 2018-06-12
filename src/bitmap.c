@@ -1,13 +1,15 @@
 #include "bitmap.h"
+#include "log.h"
+
 
 static void error_log(char *fmt, ...) {
 #ifdef ERR_FLAG
     va_list args;
     va_start(args, fmt);
-    
-    printf("BITMAP : ");
-    vprintf(fmt, args);
-    printf("\n");
+    log_msg("BITMAP : %c; %s\n", fmt, args);
+    //printf("BITMAP : ");
+    //vprintf(fmt, args);
+    //printf("\n");
 
     va_end(args);
 #endif
@@ -61,7 +63,7 @@ uint64_t findFirstFreeBlock() {
         bit_index = 0;
         while(bit_index < 8) {
             val = (int)pow(2, bit_index);
-            
+
             if( !(bitmap[index] & val) ) {
                 found = 1;
                 break;
@@ -79,7 +81,7 @@ uint64_t findFirstFreeBlock() {
         error_log("Returning with %lu", index * 8 + bit_index);
         return (index * 8 + bit_index);
     }
-    
+
     error_log("Returning not found!");
     return -1;
 }
@@ -87,7 +89,7 @@ uint64_t findFirstFreeBlock() {
 
 int setBitofMap(uint64_t bitno) {
     error_log("%s called on bitno %llu", __func__, bitno);
-    
+
     uint64_t index = bitno / 8;
     int bit_index = bitno % 8;
 
