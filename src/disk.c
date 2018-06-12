@@ -338,7 +338,7 @@ int readBlock(uint64_t blocknr, void *block) {
 
     int ret;
     if(blocknr < MAX_BLOCK_NO){
-        error_log("Reading %d from otbfset %d", BLOCK_SIZE, blocknr * BLOCK_SIZE);
+        error_log("Reading %d from offset %d", BLOCK_SIZE, blocknr * BLOCK_SIZE);
         lseek(diskfd, blocknr * BLOCK_SIZE, SEEK_SET);
         ret = read(diskfd, block, BLOCK_SIZE);
     }

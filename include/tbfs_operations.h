@@ -25,7 +25,7 @@ int tbfs_mknod(const char *path, mode_t m, dev_t d);
 
 int tbfs_mkdir(const char *path, mode_t m);
 
-int tbfs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler, off_t otbfset, struct fuse_file_info *fi);
+int tbfs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi);
 
 int tbfs_rmdir(const char *path);
 
@@ -33,9 +33,9 @@ int tbfs_rename(const char *from, const char *to);
 
 int tbfs_open(const char *path, struct fuse_file_info *fi);
 
-int tbfs_read(const char *path, char *buf, size_t size, off_t otbfset,struct fuse_file_info *fi);
+int tbfs_read(const char *path, char *buf, size_t size, off_t offset,struct fuse_file_info *fi);
 
-int tbfs_write(const char *path, const char *buf, size_t size, off_t otbfset,struct fuse_file_info *fi);
+int tbfs_write(const char *path, const char *buf, size_t size, off_t offset,struct fuse_file_info *fi);
 
 int tbfs_utimens(const char *path, struct utimbuf *tv);
 

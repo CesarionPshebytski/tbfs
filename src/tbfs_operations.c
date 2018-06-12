@@ -88,7 +88,7 @@ int tbfs_mkdir(const char *path, mode_t m) {
 }
 
 
-int tbfs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler, off_t otbfset, struct fuse_file_info *fi) {
+int tbfs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
     error_log("%s called on path : %s", __func__, path);
 
     fs_tree_node *curr = NULL;
@@ -157,9 +157,9 @@ int tbfs_open(const char *path, struct fuse_file_info *fi)
 }
 
 
-int tbfs_read(const char *path, char *buf, size_t size, off_t otbfset,struct fuse_file_info *fi)
+int tbfs_read(const char *path, char *buf, size_t size, off_t offset,struct fuse_file_info *fi)
 {   
-    error_log("%s called on path : %s \t size = %lu\t otbfset = %ld", __func__, path, size, otbfset);
+    error_log("%s called on path : %s \t size = %lu\t offset = %ld", __func__, path, size, offset);
 
     fs_tree_node *curr = NULL;
     size_t len;
@@ -171,12 +171,12 @@ int tbfs_read(const char *path, char *buf, size_t size, off_t otbfset,struct fus
 
     error_log("curr found at %p with data %d", curr, len);
 
-    if (otbfset < len) {
-        if (otbfset + size > len)
-            size = len - otbfset;
+    if (offset < len) {
+        if (offset + size > len)
+            size = len - offset;
         
-        error_log("if otbfset < len\t %ld %d %ld", size, len, otbfset);
-        memcpy(buf, curr->data + otbfset, size);
+        error_log("if offset < len\t %ld %d %ld", size, len, offset);
+        memcpy(buf, curr->data + offset, size);
     } 
     else {
         size = 0;
@@ -187,9 +187,9 @@ int tbfs_read(const char *path, char *buf, size_t size, off_t otbfset,struct fus
 }
 
 
-int tbfs_write(const char *path, const char *buf, size_t size, off_t otbfset, struct fuse_file_info *fi)
+int tbfs_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {   
-    error_log("%s called on path : %s ; to write : %s ; size = %d ; otbfset = %d ;", __func__, path, buf, size, otbfset);
+    error_log("%s called on path : %s ; to write : %s ; size = %d ; offset = %d ;", __func__, path, buf, size, offset);
 
     fs_tree_node *curr = NULL;
     size_t len = 0;
@@ -198,27 +198,27 @@ int tbfs_write(const char *path, const char *buf, size_t size, off_t otbfset, st
 
     error_log("curr found at %p with data %d", curr, len);
 
-    if (otbfset + size >= len){
+    if (offset + size >= len){
         void *new_buf = NULL;
 
-        new_buf = reallocate(curr, otbfset+size+1);
-        if (!new_buf && otbfset+size) {
-            error_log("Failed to realloc! %p && %d = %d", new_buf, otbfset+size, (!new_buf && otbfset+size));
+        new_buf = reallocate(curr, offset+size+1);
+        if (!new_buf && offset+size) {
+            error_log("Failed to realloc! %p && %d = %d", new_buf, offset+size, (!new_buf && offset+size));
             return -ENOMEM;
         }
         else if(new_buf != curr->data)
             curr->data = new_buf;
 
-        error_log("successfuly realloced to %d!", otbfset+size+1);
+        error_log("successfuly realloced to %d!", offset+size+1);
 
-        memset(curr->data + otbfset, 0, size);
+        memset(curr->data + offset, 0, size);
         
-        error_log("Erased data from otbfset %d to size %d!", otbfset, size);
-        curr->data_size = otbfset + size;
+        error_log("Erased data from offset %d to size %d!", offset, size);
+        curr->data_size = offset + size;
         error_log("curr->data_size %lu", curr->data_size);
     }
     
-    memcpy(curr->data + otbfset, buf, size);
+    memcpy(curr->data + offset, buf, size);
 
     error_log("Copied data! Returning with size %d!", size);
 
